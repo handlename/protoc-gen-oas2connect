@@ -1,0 +1,64 @@
+{{- define "Service" }}
+{{- $protoService := .ProtoService }}
+package {{ .OasPackage.Name }}
+
+import (
+	"bytes"
+	"encoding/json"
+	"net/http"
+
+	proto "{{ .ProtoPackage.Path }}"
+	connect "{{ .ConnectPackage.Path }}"
+)
+
+type {{ $protoService.Name }}ServiceHandlerInfo struct {
+	Path    string
+	Handler http.Handler
+}
+
+func RegisterEndpoints(mux *http.ServeMux, svc connect.{{ .ProtoService.Name }}ServiceHandler) {
+	path, handler := connect.NewGreetServiceHandler(svc)
+	info := &GreetServiceHandlerInfo{path, handler}
+
+	{{- range .Endpoints }}
+	mux.HandleFunc(New{{ .Path | PathToFuncName }}Handler(info))
+	{{- end }}
+}
+
+{{- range .Endpoints }}
+func New{{ .Path | PathToFuncName }}Handler(info *{{ $protoService.Name }}ServiceHandlerInfo) (string, func(http.ResponseWriter, *http.Request)) {
+	return "{{ .Path }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.Method {
+		{{- range .ProtoMethods }}
+		case http.Method{{ .HTTPMethod | ToCamel }}:
+			pbr := proto.{{ .ProtoRequest.Name }}{}
+
+			// TODO: covert param type
+			{{- range .ProtoRequest.Fields }}
+			{{ if eq .ParamType "query" }}
+			pbr.{{ .Name | ToCamel }} = r.URL.Query().Get("{{ .Name }}")
+			{{- else if eq .ParamType "path" }}
+			pbr.{{ .Name | ToCamel }} = r.PathValue("{{ .Name }}")
+			{{- end }}
+			{{- end }}
+
+			var cb bytes.Buffer
+			json.NewEncoder(&cb).Encode(&pbr)
+
+			cr, err := http.NewRequest(http.MethodPost, info.Path+"{{ .Name }}", &cb)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			cr.Header.Set("content-type", "application/json")
+
+			info.Handler.ServeHTTP(w, cr)
+		{{- end }}
+		default:
+			http.NotFound(w, r)
+		}
+	})
+}
+{{- end }}{{/* range .Connect.Service.Methods */}}
+
+{{- end }}{{/* define "Service" */}}
