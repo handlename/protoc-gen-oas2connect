@@ -63,5 +63,7 @@ func (g *Generator) buildTemplateData(oasPackageName, protoPackagePath, protoSer
 		})
 	}
 
+	data.FixOrders()
+
 	return data
 }
