@@ -1,6 +1,10 @@
 package proto
 
-import "log/slog"
+import (
+	"log/slog"
+
+	"google.golang.org/protobuf/reflect/protoreflect"
+)
 
 // https://protobuf.dev/programming-guides/proto3/#scalar
 type FieldType string
@@ -22,6 +26,44 @@ const (
 	FieldTypeString   FieldType = "string"
 	FieldTypeBytes    FieldType = "bytes"
 )
+
+func NewFieldType(kind protoreflect.Kind) FieldType {
+	switch kind {
+	case protoreflect.DoubleKind:
+		return FieldTypeDouble
+	case protoreflect.FloatKind:
+		return FieldTypeFloat
+	case protoreflect.Int32Kind:
+		return FieldTypeInt32
+	case protoreflect.Int64Kind:
+		return FieldTypeInt64
+	case protoreflect.Uint32Kind:
+		return FieldTypeUint32
+	case protoreflect.Uint64Kind:
+		return FieldTypeUint64
+	case protoreflect.Sint32Kind:
+		return FieldTypeSint32
+	case protoreflect.Sint64Kind:
+		return FieldTypeSint64
+	case protoreflect.Fixed32Kind:
+		return FieldTypeFixed32
+	case protoreflect.Fixed64Kind:
+		return FieldTypeFixed64
+	case protoreflect.Sfixed32Kind:
+		return FieldTypeSfixed32
+	case protoreflect.Sfixed64Kind:
+		return FieldTypeSfixed64
+	case protoreflect.BoolKind:
+		return FieldTypeBool
+	case protoreflect.StringKind:
+		return FieldTypeString
+	case protoreflect.BytesKind:
+		return FieldTypeBytes
+	default:
+		slog.Warn("unknown FieldType, falled back to string", slog.String("kind", kind.String()))
+		return FieldTypeString
+	}
+}
 
 // ToGoTypeName returns Go type name from FieldType,
 // based on https://protobuf.dev/programming-guides/proto3/#scalar

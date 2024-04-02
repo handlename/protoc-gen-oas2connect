@@ -1,0 +1,7 @@
+proto_file: {
+    name: "empty"
+    package: "empty"
+    options: {
+        go_package: "service/empty;empty"
+    }
+}

@@ -1,0 +1,44 @@
+proto_file: {
+    name: "petstore"
+    package: "petstore"
+    message_type: {
+        name: "PetResponse"
+        field: {
+            name: "id"
+            number: 1
+            label: LABEL_OPTIONAL
+            type: TYPE_INT64
+        }
+        field: {
+            name: "name"
+            number: 2
+            label: LABEL_OPTIONAL
+            type: TYPE_STRING
+        }
+    }
+    message_type: {
+        name: "GetPetRequest"
+        field: {
+            name: "petId"
+            number: 1
+            label: LABEL_OPTIONAL
+            type: TYPE_INT64
+        }
+    },
+    service: {
+        name: "Pet"
+        method: {
+            name: "FindPetByID"
+            input_type: "GetPetRequest"
+            output_type: "PetResponse"
+            options: {
+                [google.api.http] {
+                    get: "/pet/{petId}"
+                }
+            }
+        }
+    }
+    options: {
+        go_package: "petstore/v1;pet"
+    }
+}
