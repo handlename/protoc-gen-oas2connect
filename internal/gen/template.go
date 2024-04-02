@@ -1,4 +1,4 @@
-package o2c
+package gen
 
 import (
 	_ "embed"
@@ -8,20 +8,11 @@ import (
 var ServiceTmpl []byte
 
 type TemplateData struct {
-	OasPackage     TemplatePackageData
-	ProtoPackage   TemplatePackageData
-	ConnectPackage TemplatePackageData
-	ProtoService   TemplateProtoServiceData
-	Endpoints      []TemplateEndpointData
-}
-
-type TemplatePackageData struct {
-	Name string
-	Path string
-}
-
-type TemplateProtoServiceData struct {
-	Name string
+	OasPackageName     string
+	ProtoPackagePath   string
+	ProtoServiceName   string
+	ConnectPackagePath string
+	Endpoints          []TemplateEndpointData
 }
 
 type TemplateEndpointData struct {
