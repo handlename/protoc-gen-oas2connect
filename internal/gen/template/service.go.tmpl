@@ -1,22 +1,22 @@
 {{- define "Service" }}
-{{- $protoService := .ProtoService }}
-package {{ .OasPackage.Name }}
+{{- $protoServiceName := .ProtoServiceName }}
+package {{ .OasPackageName }}
 
 import (
 	"bytes"
 	"encoding/json"
 	"net/http"
 
-	proto "{{ .ProtoPackage.Path }}"
-	connect "{{ .ConnectPackage.Path }}"
+	proto "{{ .ProtoPackagePath }}"
+	connect "{{ .ConnectPackagePath }}"
 )
 
-type {{ $protoService.Name }}ServiceHandlerInfo struct {
+type {{ $protoServiceName }}ServiceHandlerInfo struct {
 	Path    string
 	Handler http.Handler
 }
 
-func RegisterEndpoints(mux *http.ServeMux, svc connect.{{ .ProtoService.Name }}ServiceHandler) {
+func RegisterEndpoints(mux *http.ServeMux, svc connect.{{ $protoServiceName }}ServiceHandler) {
 	path, handler := connect.NewGreetServiceHandler(svc)
 	info := &GreetServiceHandlerInfo{path, handler}
 
@@ -26,7 +26,7 @@ func RegisterEndpoints(mux *http.ServeMux, svc connect.{{ .ProtoService.Name }}S
 }
 
 {{- range .Endpoints }}
-func New{{ .Path | PathToFuncName }}Handler(info *{{ $protoService.Name }}ServiceHandlerInfo) (string, func(http.ResponseWriter, *http.Request)) {
+func New{{ .Path | PathToFuncName }}Handler(info *{{ $protoServiceName }}ServiceHandlerInfo) (string, func(http.ResponseWriter, *http.Request)) {
 	return "{{ .Path }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		{{- range .ProtoMethods }}
