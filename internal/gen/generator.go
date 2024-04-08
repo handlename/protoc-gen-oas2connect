@@ -2,7 +2,6 @@ package gen
 
 import (
 	"bytes"
-	"io"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -21,11 +20,13 @@ type Generator struct {
 	files []*protogen.File
 }
 
+type GenerateCallback func(filename string, content []byte) error
+
 func NewGenerator(files []*protogen.File) (*Generator, error) {
 	return &Generator{files: files}, nil
 }
 
-func (g *Generator) Generate(cb func(filename string, w io.Reader) error) error {
+func (g *Generator) Generate(cb GenerateCallback) error {
 	// build Endpoints
 	slog.Debug("building Endpoints")
 	endpoints := g.buildEndpoints()
@@ -59,7 +60,7 @@ func (g *Generator) Generate(cb func(filename string, w io.Reader) error) error 
 
 		filename := serviceName + "oas2connect.go"
 		slog.Debug("generating code", slog.String("service", serviceName), slog.String("filename", filename))
-		if err := cb(filename, &buf); err != nil {
+		if err := cb(filename, buf.Bytes()); err != nil {
 			slog.Error("failed to call callback", slog.String("err", err.Error()), slog.String("service", serviceName))
 			return err
 		}
