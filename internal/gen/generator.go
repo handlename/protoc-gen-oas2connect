@@ -1,6 +1,8 @@
 package gen
 
 import (
+	"bytes"
+	"io"
 	"log/slog"
 	"net/http"
 	"regexp"
@@ -23,17 +25,47 @@ func NewGenerator(files []*protogen.File) (*Generator, error) {
 	return &Generator{files: files}, nil
 }
 
-func (g *Generator) Generate() error {
+func (g *Generator) Generate(cb func(filename string, w io.Reader) error) error {
 	// build Endpoints
-
+	slog.Debug("building Endpoints")
 	endpoints := g.buildEndpoints()
-	slog.Debug("built Endpoints", slog.Any("endpoints", endpoints))
+	slog.Debug("built Endpoints", slog.Int("count", len(endpoints)))
 
-	slog.Error("not implemented yet")
+	services := map[string][]Endpoint{}
+	for _, ep := range endpoints {
+		services[ep.Proto.Service] = append(services[ep.Proto.Service], ep)
+	}
 
-	// build TemplateData
+	for serviceName, eps := range services {
+		// build TemplateData per each proto Service
+		slog.Debug("processing to generate code", slog.String("service", serviceName))
 
-	// render template
+		data := g.buildTemplateData(
+			"oas",   // TODO
+			"proto", // TODO
+			serviceName,
+			"connect",
+			eps,
+		)
+
+		// render template
+		slog.Debug("rendering template", slog.String("service", serviceName))
+
+		var buf bytes.Buffer
+		if err := executeTemplate(data, &buf); err != nil {
+			slog.Error("failed to execute template", slog.String("err", err.Error()), slog.String("service", serviceName))
+			return err
+		}
+
+		filename := serviceName + "oas2connect.go"
+		slog.Debug("generating code", slog.String("service", serviceName), slog.String("filename", filename))
+		if err := cb(filename, &buf); err != nil {
+			slog.Error("failed to call callback", slog.String("err", err.Error()), slog.String("service", serviceName))
+			return err
+		}
+
+		slog.Debug("generated code", slog.String("service", serviceName))
+	}
 
 	return nil
 }
