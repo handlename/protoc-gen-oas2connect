@@ -17,46 +17,43 @@ type {{ $protoServiceName }}ServiceHandlerInfo struct {
 }
 
 func RegisterEndpoints(mux *http.ServeMux, svc connect.{{ $protoServiceName }}ServiceHandler) {
-	path, handler := connect.NewGreetServiceHandler(svc)
-	info := &GreetServiceHandlerInfo{path, handler}
+	path, handler := connect.New{{ $protoServiceName }}ServiceHandler(svc)
+	info := &{{ $protoServiceName }}ServiceHandlerInfo{path, handler}
 
 	{{- range .Endpoints }}
-	mux.HandleFunc(New{{ .Path | PathToFuncName }}Handler(info))
+	mux.HandleFunc(New{{ .Method }}{{ .Path | PathToFuncName }}Handler(info))
 	{{- end }}
 }
 
 {{- range .Endpoints }}
-func New{{ .Path | PathToFuncName }}Handler(info *{{ $protoServiceName }}ServiceHandlerInfo) (string, func(http.ResponseWriter, *http.Request)) {
-	return "{{ .Path }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		switch r.Method {
-		{{- range .ProtoMethods }}
-		case http.Method{{ .HTTPMethod | ToCamel }}:
-			pbr := proto.{{ .ProtoRequest.Name }}{}
+{{- $endpoint := . }}
+{{- $protoMethod := .ProtoMethod }}
+{{- $protoRequest := .ProtoMethod.Request }}
+func New{{ $endpoint.Method }}{{ $endpoint.Path | PathToFuncName }}Handler(info *{{ $protoServiceName }}ServiceHandlerInfo) (string, func(http.ResponseWriter, *http.Request)) {
+	return "{{ $endpoint.Method }} {{ $endpoint.Path }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		pbr := proto.{{ $protoRequest.Name }}{}
 
-			// TODO: covert param type
-			{{- range .ProtoRequest.Fields }}
-			{{ if eq .ParamType "query" }}
-			pbr.{{ .Name | ToCamel }} = r.URL.Query().Get("{{ .Name }}")
-			{{- else if eq .ParamType "path" }}
-			pbr.{{ .Name | ToCamel }} = r.PathValue("{{ .Name }}")
-			{{- end }}
-			{{- end }}
-
-			var cb bytes.Buffer
-			json.NewEncoder(&cb).Encode(&pbr)
-
-			cr, err := http.NewRequest(http.MethodPost, info.Path+"{{ .Name }}", &cb)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			cr.Header.Set("content-type", "application/json")
-
-			info.Handler.ServeHTTP(w, cr)
+		// TODO: covert param type
+		{{- range $protoRequest.Fields }}
+		{{- $field := . }}
+		{{ if eq $field.ParamType "query" }}
+		pbr.{{ $protoMethod.Name | ToCamel }} = r.URL.Query().Get("{{ $field.Name }}")
+		{{- else if eq $field.ParamType "path" }}
+		pbr.{{ $protoMethod.Name | ToCamel }} = r.PathValue("{{ $field.Name }}")
 		{{- end }}
-		default:
-			http.NotFound(w, r)
+		{{- end }}
+
+		var cb bytes.Buffer
+		json.NewEncoder(&cb).Encode(&pbr)
+
+		cr, err := http.NewRequest(http.MethodPost, info.Path+"{{ $protoMethod.Name }}", &cb)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
+		cr.Header.Set("content-type", "application/json")
+
+		info.Handler.ServeHTTP(w, cr)
 	})
 }
 {{- end }}{{/* range .Connect.Service.Methods */}}

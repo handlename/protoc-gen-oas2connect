@@ -23,14 +23,14 @@ type TemplateData struct {
 }
 
 type TemplateEndpointData struct {
-	Path         string
-	ProtoMethods []TemplateProtoMethodData
+	Method      string
+	Path        string
+	ProtoMethod TemplateProtoMethodData
 }
 
 type TemplateProtoMethodData struct {
-	Name         string
-	HTTPMethod   string
-	ProtoRequest TemplateProtoRequestData
+	Name    string
+	Request TemplateProtoRequestData
 }
 
 type TemplateProtoRequestData struct {
@@ -47,23 +47,12 @@ type TemplateProtoFieldData struct {
 // FixOrders fixes the order of Endpoints by Path
 func (d *TemplateData) FixOrders() {
 	sort.SliceStable(d.Endpoints, func(i, j int) bool {
+		if d.Endpoints[i].Path == d.Endpoints[j].Path {
+			return d.Endpoints[i].Method < d.Endpoints[j].Method
+		}
+
 		return d.Endpoints[i].Path < d.Endpoints[j].Path
 	})
-
-	for _, ep := range d.Endpoints {
-		ep.FixOrders()
-	}
-}
-
-// FixOrders fixes the order of ProtoMethods by HTTPMethod
-func (d *TemplateEndpointData) FixOrders() {
-	sort.SliceStable(d.ProtoMethods, func(i, j int) bool {
-		return d.ProtoMethods[i].HTTPMethod < d.ProtoMethods[j].HTTPMethod
-	})
-
-	for _, m := range d.ProtoMethods {
-		m.ProtoRequest.FixOrders()
-	}
 }
 
 // FixOrders fixes the order of Fields by Name

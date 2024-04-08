@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"net/http"
 	"os"
 	"path"
 	"testing"
@@ -133,7 +132,7 @@ func TestBuildTemplateData(t *testing.T) {
 						Method:  "FindByID",
 					},
 					Oas: EndpointOas{
-						Method: http.MethodGet,
+						Method: "GET",
 						Path:   "/pet/{petId}",
 					},
 					Fields: []EndpointField{
@@ -158,19 +157,17 @@ func TestBuildTemplateData(t *testing.T) {
 				ProtoServiceName:   "Pet",
 				Endpoints: []TemplateEndpointData{
 					{
-						Path: "/pet/{petId}",
-						ProtoMethods: []TemplateProtoMethodData{
-							{
-								Name:       "FindByID",
-								HTTPMethod: http.MethodGet,
-								ProtoRequest: TemplateProtoRequestData{
-									Name: "FindByID",
-									Fields: []TemplateProtoFieldData{
-										{
-											Name:      "petId",
-											GoType:    "int64",
-											ParamType: "path",
-										},
+						Method: "GET",
+						Path:   "/pet/{petId}",
+						ProtoMethod: TemplateProtoMethodData{
+							Name: "FindByID",
+							Request: TemplateProtoRequestData{
+								Name: "FindByID",
+								Fields: []TemplateProtoFieldData{
+									{
+										Name:      "petId",
+										GoType:    "int64",
+										ParamType: "path",
 									},
 								},
 							},

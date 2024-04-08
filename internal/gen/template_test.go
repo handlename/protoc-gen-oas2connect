@@ -11,118 +11,50 @@ func TestTemplateDataFixOrders(t *testing.T) {
 	original := &TemplateData{
 		Endpoints: []TemplateEndpointData{
 			{
-				Path:         "/user",
-				ProtoMethods: []TemplateProtoMethodData{},
+				Method: "POST",
+				Path:   "/user",
 			},
 			{
-				Path:         "/store",
-				ProtoMethods: []TemplateProtoMethodData{},
+				Method: "GET",
+				Path:   "/store",
 			},
 			{
-				Path: "/pet/{petId}",
-				ProtoMethods: []TemplateProtoMethodData{
-					{
-						Name:       "FindPetByID",
-						HTTPMethod: "GET",
-						ProtoRequest: TemplateProtoRequestData{
-							Name:   "",
-							Fields: []TemplateProtoFieldData{},
-						},
-					},
-					{
-						Name:       "DeletePet",
-						HTTPMethod: "DELETE",
-						ProtoRequest: TemplateProtoRequestData{
-							Name:   "",
-							Fields: []TemplateProtoFieldData{},
-						},
-					},
-					{
-						Name:       "UpdatePet",
-						HTTPMethod: "POST",
-						ProtoRequest: TemplateProtoRequestData{
-							Name: "",
-							Fields: []TemplateProtoFieldData{
-								{
-									Name:      "petId",
-									GoType:    "int64",
-									ParamType: "path",
-								},
-								{
-									Name:      "name",
-									GoType:    "string",
-									ParamType: "query",
-								},
-								{
-									Name:      "status",
-									GoType:    "string",
-									ParamType: "query",
-								},
-							},
-						},
-					},
-				},
+				Method: "GET",
+				Path:   "/pet/{petId}",
+			},
+			{
+				Method: "DELETE",
+				Path:   "/pet/{petId}",
+			},
+			{
+				Method: "PATCH",
+				Path:   "/pet/{petId}",
 			},
 		},
 	}
 
 	expected := &TemplateData{
 		Endpoints: []TemplateEndpointData{
-			// Sort by Path
+			// Sort by Path, Method
 			{
-				Path: "/pet/{petId}",
-				ProtoMethods: []TemplateProtoMethodData{
-					// Sort by HTTPMethod
-					{
-						Name:       "DeletePet",
-						HTTPMethod: "DELETE",
-						ProtoRequest: TemplateProtoRequestData{
-							Name:   "",
-							Fields: []TemplateProtoFieldData{},
-						},
-					},
-					{
-						Name:       "FindPetByID",
-						HTTPMethod: "GET",
-						ProtoRequest: TemplateProtoRequestData{
-							Name:   "",
-							Fields: []TemplateProtoFieldData{},
-						},
-					},
-					{
-						Name:       "UpdatePet",
-						HTTPMethod: "POST",
-						ProtoRequest: TemplateProtoRequestData{
-							Name: "",
-							Fields: []TemplateProtoFieldData{
-								// Sort by Name
-								{
-									Name:      "name",
-									GoType:    "string",
-									ParamType: "query",
-								},
-								{
-									Name:      "petId",
-									GoType:    "int64",
-									ParamType: "path",
-								},
-								{
-									Name:      "status",
-									GoType:    "string",
-									ParamType: "query",
-								},
-							},
-						},
-					},
-				},
+				Method: "DELETE",
+				Path:   "/pet/{petId}",
 			},
 			{
-				Path:         "/store",
-				ProtoMethods: []TemplateProtoMethodData{},
+				Method: "GET",
+				Path:   "/pet/{petId}",
 			},
 			{
-				Path:         "/user",
-				ProtoMethods: []TemplateProtoMethodData{},
+				Method: "PATCH",
+				Path:   "/pet/{petId}",
+			},
+			{
+				Method: "GET",
+				Path:   "/store",
+			},
+			{
+				Method: "POST",
+				Path:   "/user",
 			},
 		},
 	}
@@ -134,7 +66,7 @@ func TestTemplateDataFixOrders(t *testing.T) {
 	}
 }
 
-func TestExecuteTemplate(t *testing.T) {
+func TestTemplateExecute(t *testing.T) {
 	data := TemplateData{
 		OasPackageName:     "petv1oas",
 		ProtoServiceName:   "Pet",
@@ -142,19 +74,17 @@ func TestExecuteTemplate(t *testing.T) {
 		ConnectPackagePath: "example/gen/pet/v1/petv1connect",
 		Endpoints: []TemplateEndpointData{
 			{
-				Path: "/pet/{petId}",
-				ProtoMethods: []TemplateProtoMethodData{
-					{
-						Name:       "UpdatePet",
-						HTTPMethod: "POST",
-						ProtoRequest: TemplateProtoRequestData{
-							Name: "",
-							Fields: []TemplateProtoFieldData{
-								{
-									Name:      "name",
-									GoType:    "string",
-									ParamType: "query",
-								},
+				Method: "POST",
+				Path:   "/pet/{petId}",
+				ProtoMethod: TemplateProtoMethodData{
+					Name: "UpdatePet",
+					Request: TemplateProtoRequestData{
+						Name: "",
+						Fields: []TemplateProtoFieldData{
+							{
+								Name:      "name",
+								GoType:    "string",
+								ParamType: "query",
 							},
 						},
 					},

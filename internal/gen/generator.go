@@ -191,7 +191,6 @@ func (g *Generator) buildTemplateData(oasPackageName, protoPackagePath, protoSer
 	}
 
 	for path, eps := range byPath {
-		protoMethods := []TemplateProtoMethodData{}
 		for _, ep := range eps {
 			fields := []TemplateProtoFieldData{}
 			for _, f := range ep.Fields {
@@ -207,17 +206,16 @@ func (g *Generator) buildTemplateData(oasPackageName, protoPackagePath, protoSer
 				Fields: fields,
 			}
 
-			protoMethods = append(protoMethods, TemplateProtoMethodData{
-				Name:         ep.Proto.Method,
-				HTTPMethod:   ep.Oas.Method,
-				ProtoRequest: protoRequest,
+			protoMethod := TemplateProtoMethodData{
+				Name:    ep.Proto.Method,
+				Request: protoRequest,
+			}
+
+			data.Endpoints = append(data.Endpoints, TemplateEndpointData{
+				Path:        path,
+				ProtoMethod: protoMethod,
 			})
 		}
-
-		data.Endpoints = append(data.Endpoints, TemplateEndpointData{
-			Path:         path,
-			ProtoMethods: protoMethods,
-		})
 	}
 
 	data.FixOrders()
