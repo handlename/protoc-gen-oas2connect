@@ -37,9 +37,9 @@ func New{{ $endpoint.Method }}{{ $endpoint.Path | PathToFuncName }}Handler(info 
 		{{- range $protoRequest.Fields }}
 		{{- $field := . }}
 		{{ if eq $field.ParamType "query" }}
-		pbr.{{ $protoMethod.Name | ToCamel }} = r.URL.Query().Get("{{ $field.Name }}")
+		pbr.{{ $field.Name | ToCamel }} = r.URL.Query().Get("{{ $field.Name }}")
 		{{- else if eq $field.ParamType "path" }}
-		pbr.{{ $protoMethod.Name | ToCamel }} = r.PathValue("{{ $field.Name }}")
+		pbr.{{ $field.Name | ToCamel }} = r.PathValue("{{ $field.Name }}")
 		{{- end }}
 		{{- end }}
 
