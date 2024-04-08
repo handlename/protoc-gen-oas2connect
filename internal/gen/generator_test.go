@@ -19,17 +19,17 @@ func TestBuildEndpoints(t *testing.T) {
 	test := []struct {
 		name        string
 		inTextproto string
-		expected    []*Endpoint
+		expected    []Endpoint
 	}{
 		{
 			name:        "empty",
 			inTextproto: "empty.textproto",
-			expected:    []*Endpoint{},
+			expected:    []Endpoint{},
 		},
 		{
 			name:        "success",
 			inTextproto: "petstore.textproto",
-			expected: []*Endpoint{
+			expected: []Endpoint{
 				// TODO: POST body
 				// {
 				// 	Proto:  EndpointProto{

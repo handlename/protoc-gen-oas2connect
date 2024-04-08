@@ -38,8 +38,8 @@ func (g *Generator) Generate() error {
 	return nil
 }
 
-func (g *Generator) buildEndpoints() []*Endpoint {
-	eps := []*Endpoint{}
+func (g *Generator) buildEndpoints() []Endpoint {
+	eps := []Endpoint{}
 
 	for _, f := range g.files {
 		for _, s := range f.Services {
@@ -52,7 +52,7 @@ func (g *Generator) buildEndpoints() []*Endpoint {
 
 				ep := g.buildEndpoint(s, m)
 				if ep != nil {
-					eps = append(eps, ep)
+					eps = append(eps, *ep)
 				}
 			}
 		}
