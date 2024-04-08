@@ -212,6 +212,7 @@ func (g *Generator) buildTemplateData(oasPackageName, protoPackagePath, protoSer
 			}
 
 			data.Endpoints = append(data.Endpoints, TemplateEndpointData{
+				Method:      ep.Oas.Method,
 				Path:        path,
 				ProtoMethod: protoMethod,
 			})
