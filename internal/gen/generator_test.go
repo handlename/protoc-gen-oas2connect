@@ -9,55 +9,55 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 	"google.golang.org/protobuf/encoding/prototext"
 	"google.golang.org/protobuf/types/pluginpb"
-
-	"github.com/handlename/protoc-gen-oas2connect/internal/oas"
-	"github.com/handlename/protoc-gen-oas2connect/internal/proto"
 )
 
-func TestBuildEndpoints(t *testing.T) {
-	test := []struct {
-		name        string
-		inTextproto string
-		expected    []Endpoint
+func TestBuildTemplateData(t *testing.T) {
+	tests := []struct {
+		name                 string
+		inTextproto          string
+		inProtoPackagePath   string
+		inConnectPackagePath string
+		expected             TemplateData
 	}{
 		{
-			name:        "empty",
-			inTextproto: "empty.textproto",
-			expected:    []Endpoint{},
+			name:                 "empty",
+			inTextproto:          "empty.textproto",
+			inProtoPackagePath:   "example/gen/empty/v1",
+			inConnectPackagePath: "example/gen/empty/v1/emptyv1connect",
+			expected: TemplateData{
+				PackageName:        "petstorev3oas",
+				ProtoPackagePath:   "example/gen/empty/v1",
+				ConnectPackagePath: "example/gen/empty/v1/emptyv1connect",
+				Services:           []TemplateServiceData{},
+			},
 		},
 		{
-			name:        "success",
-			inTextproto: "petstore.textproto",
-			expected: []Endpoint{
-				// TODO: POST body
-				// {
-				// 	Proto:  EndpointProto{
-				// 		Service: "Pet",
-				// 		Method:  "AddNewPet",
-				// 	},
-				// 	Oas:    EndpointOas{
-				// 		Method: "POST",
-				// 		Path:   "/pet",
-				// 	},
-				// },
-				{
-					Proto: EndpointProto{
-						Service: "Pet",
-						Method:  "FindPetByID",
-					},
-					Oas: EndpointOas{
-						Method: "GET",
-						Path:   "/pet/{petId}",
-					},
-					Fields: []EndpointField{
-						{
-							Name: "PetId",
-							Proto: EndpointProtoField{
-								FieldType: proto.FieldTypeInt64,
-							},
-							Oas: EndpointOasField{
-								DataType:  oas.DataTypeInteger,
-								ParamType: oas.ParamTypePath,
+			name:                 "success",
+			inTextproto:          "petstore.textproto",
+			inProtoPackagePath:   "example/gen/pet/v1",
+			inConnectPackagePath: "example/gen/pet/v1/petv1connect",
+			expected: TemplateData{
+				PackageName:        "petstorev3oas",
+				ProtoPackagePath:   "example/gen/pet/v1",
+				ConnectPackagePath: "example/gen/pet/v1/petv1connect",
+				Services: []TemplateServiceData{
+					{
+						Name: "Pet",
+						Methods: []TemplateMethodData{
+							{
+								Name:       "FindPet",
+								HTTPMethod: "GET",
+								HTTPPath:   "/pet/{petId}",
+								Request: TemplateRequestData{
+									Name: "FindPetRequest",
+									Fields: []TemplateFieldData{
+										{
+											Name:      "PetId",
+											GoType:    "int64",
+											ParamType: "path",
+										},
+									},
+								},
 							},
 						},
 					},
@@ -66,7 +66,7 @@ func TestBuildEndpoints(t *testing.T) {
 		},
 	}
 
-	for _, test := range test {
+	for _, test := range tests {
 		test := test
 
 		t.Run(test.name, func(t *testing.T) {
@@ -91,111 +91,12 @@ func TestBuildEndpoints(t *testing.T) {
 				f.Generate = true
 			}
 
-			g, err := NewGenerator(p.Files)
+			res, err := buildTemplateData(p.Files[0], test.inProtoPackagePath, test.inConnectPackagePath)
 			if err != nil {
-				t.Fatal(err)
+				t.Fatalf("unexpected error: %v", err)
 			}
 
-			if diff := cmp.Diff(g.buildEndpoints(), test.expected); diff != "" {
-				t.Errorf("unexpected result: %v", diff)
-			}
-		})
-	}
-
-}
-
-func TestBuildTemplateData(t *testing.T) {
-	tests := []struct {
-		name                 string
-		inOasPackageName     string
-		inProtoPackagePath   string
-		inProtoServiceName   string
-		inConnectPackagePath string
-		inEndpoints          []Endpoint
-		expected             TemplateData
-	}{
-		{
-			name:        "empty",
-			inEndpoints: []Endpoint{},
-			expected:    TemplateData{},
-		},
-		{
-			name:                 "success",
-			inOasPackageName:     "petv1oas",
-			inProtoPackagePath:   "example/gen/pet/v1",
-			inProtoServiceName:   "Pet",
-			inConnectPackagePath: "example/gen/pet/v1/petv1connect",
-			inEndpoints: []Endpoint{
-				{
-					Proto: EndpointProto{
-						Service: "Pet",
-						Method:  "FindByID",
-					},
-					Oas: EndpointOas{
-						Method: "GET",
-						Path:   "/pet/{petId}",
-					},
-					Fields: []EndpointField{
-						{
-							Name: "petId",
-							Proto: EndpointProtoField{
-								FieldType: proto.FieldTypeInt64,
-							},
-							Oas: EndpointOasField{
-								DataType:   oas.DataTypeNumber,
-								DataFormat: oas.DataFormatInt64,
-								ParamType:  oas.ParamTypePath,
-							},
-						},
-					},
-				},
-			},
-			expected: TemplateData{
-				OasPackageName:     "petv1oas",
-				ProtoPackagePath:   "example/gen/pet/v1",
-				ConnectPackagePath: "example/gen/pet/v1/petv1connect",
-				ProtoServiceName:   "Pet",
-				Endpoints: []TemplateEndpointData{
-					{
-						Method: "GET",
-						Path:   "/pet/{petId}",
-						ProtoMethod: TemplateProtoMethodData{
-							Name: "FindByID",
-							Request: TemplateProtoRequestData{
-								Name: "FindByID",
-								Fields: []TemplateProtoFieldData{
-									{
-										Name:      "petId",
-										GoType:    "int64",
-										ParamType: "path",
-									},
-								},
-							},
-						},
-					},
-				},
-			},
-		},
-	}
-
-	g, err := NewGenerator(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	for _, test := range tests {
-		test := test
-
-		t.Run(test.name, func(t *testing.T) {
-			res := g.buildTemplateData(
-				test.inOasPackageName,
-				test.inProtoPackagePath,
-				test.inProtoServiceName,
-				test.inConnectPackagePath,
-				test.inEndpoints,
-			)
-
-			if d := cmp.Diff(res, test.expected); d != "" {
+			if d := cmp.Diff(res, &test.expected); d != "" {
 				t.Errorf("unexpected result: %v", d)
 			}
 		})

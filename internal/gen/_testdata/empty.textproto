@@ -1,7 +1,7 @@
 proto_file: {
     name: "empty"
-    package: "empty"
+    package: "emptyv3"
     options: {
-        go_package: "service/empty;empty"
+        go_package: "petstore/v3;petstorev3oas"
     }
 }

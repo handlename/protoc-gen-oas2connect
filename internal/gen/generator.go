@@ -1,12 +1,11 @@
 package gen
 
 import (
-	"bytes"
-	"log/slog"
+	"fmt"
+	"io"
 	"net/http"
 	"regexp"
 
-	"github.com/handlename/protoc-gen-oas2connect/internal/oas"
 	"github.com/handlename/protoc-gen-oas2connect/internal/proto"
 	"github.com/samber/lo"
 	"google.golang.org/genproto/googleapis/api/annotations"
@@ -16,140 +15,94 @@ import (
 
 var paramsInPathRgx = regexp.MustCompile(`\{([^}]+)\}`)
 
-type Generator struct {
-	files []*protogen.File
-}
-
-type GenerateCallback func(filename string, content []byte) error
-
-func NewGenerator(files []*protogen.File) (*Generator, error) {
-	return &Generator{files: files}, nil
-}
-
-func (g *Generator) Generate(cb GenerateCallback) error {
-	// build Endpoints
-	slog.Debug("building Endpoints")
-	endpoints := g.buildEndpoints()
-	slog.Debug("built Endpoints", slog.Int("count", len(endpoints)))
-
-	services := map[string][]Endpoint{}
-	for _, ep := range endpoints {
-		services[ep.Proto.Service] = append(services[ep.Proto.Service], ep)
+// Generate generates a go code to connect OpenAPI interface with connect service methods.
+func Generate(file *protogen.File, protoPackagePath, connectPackagePath string, out io.Writer) error {
+	data, err := buildTemplateData(file, protoPackagePath, connectPackagePath)
+	if err != nil {
+		return err
 	}
 
-	for serviceName, eps := range services {
-		// build TemplateData per each proto Service
-		slog.Debug("processing to generate code", slog.String("service", serviceName))
-
-		data := g.buildTemplateData(
-			"oas",   // TODO
-			"proto", // TODO
-			serviceName,
-			"connect",
-			eps,
-		)
-
-		// render template
-		slog.Debug("rendering template", slog.String("service", serviceName))
-
-		var buf bytes.Buffer
-		if err := executeTemplate(data, &buf); err != nil {
-			slog.Error("failed to execute template", slog.String("err", err.Error()), slog.String("service", serviceName))
-			return err
-		}
-
-		filename := serviceName + "oas2connect.go"
-		slog.Debug("generating code", slog.String("service", serviceName), slog.String("filename", filename))
-		if err := cb(filename, buf.Bytes()); err != nil {
-			slog.Error("failed to call callback", slog.String("err", err.Error()), slog.String("service", serviceName))
-			return err
-		}
-
-		slog.Debug("generated code", slog.String("service", serviceName))
-	}
-
-	return nil
+	return GenerateWithData(data, out)
 }
 
-func (g *Generator) buildEndpoints() []Endpoint {
-	eps := []Endpoint{}
+func GenerateWithData(data *TemplateData, out io.Writer) error {
+	return executeTemplate("Service", *data, out)
+}
 
-	for _, f := range g.files {
-		for _, s := range f.Services {
-			for _, m := range s.Methods {
-				slog.Debug(
-					"processing to build Endpoint",
-					slog.String("service", s.GoName),
-					slog.String("method", m.GoName),
-				)
+func buildTemplateData(file *protogen.File, protoPackagePath, connectPackagePath string) (*TemplateData, error) {
+	data := TemplateData{
+		PackageName:        string(file.GoPackageName),
+		ProtoPackagePath:   protoPackagePath,
+		ConnectPackagePath: connectPackagePath,
+		Services:           []TemplateServiceData{},
+	}
 
-				ep := g.buildEndpoint(s, m)
-				if ep != nil {
-					eps = append(eps, *ep)
-				}
+	for _, service := range file.Services {
+		serviceData := TemplateServiceData{
+			Name: service.GoName,
+		}
+
+		for _, method := range service.Methods {
+			methodData, err := buildTemplateMethodData(method)
+			if err != nil {
+				return nil, err
 			}
+
+			serviceData.Methods = append(serviceData.Methods, *methodData)
 		}
+
+		data.Services = append(data.Services, serviceData)
 	}
 
-	return eps
+	return &data, nil
 }
 
-func (g *Generator) buildEndpoint(service *protogen.Service, method *protogen.Method) *Endpoint {
-	ep := &Endpoint{}
-
-	// build EndpointProto
-
-	ep.Proto = EndpointProto{
-		Service: service.GoName,
-		Method:  method.GoName,
+func buildTemplateMethodData(method *protogen.Method) (*TemplateMethodData, error) {
+	data := TemplateMethodData{
+		Name: method.GoName,
+		Request: TemplateRequestData{
+			Name:   method.Input.GoIdent.GoName,
+			Fields: []TemplateFieldData{},
+		},
 	}
-
-	// build EndpointOas
 
 	rule, ok := pt.GetExtension(method.Desc.Options(), annotations.E_Http).(*annotations.HttpRule)
 	if !ok {
-		slog.Debug(
-			"no http rule",
-			slog.String("service", service.GoName),
-			slog.String("method", method.GoName),
-		)
-		return nil
+		return nil, fmt.Errorf("no http rule for method %s", method.GoName)
 	}
-
-	ep.Oas = EndpointOas{}
 
 	switch rule.Pattern.(type) {
 	case *annotations.HttpRule_Get:
-		ep.Oas.Method = http.MethodGet
+		data.HTTPMethod = http.MethodGet
 	case *annotations.HttpRule_Post:
-		ep.Oas.Method = http.MethodPost
+		data.HTTPMethod = http.MethodPost
 	case *annotations.HttpRule_Put:
-		ep.Oas.Method = http.MethodPut
+		data.HTTPMethod = http.MethodPut
 	case *annotations.HttpRule_Delete:
-		ep.Oas.Method = http.MethodDelete
+		data.HTTPMethod = http.MethodDelete
 	case *annotations.HttpRule_Patch:
-		ep.Oas.Method = http.MethodPatch
+		data.HTTPMethod = http.MethodPatch
 	}
 
 	switch p := rule.Pattern.(type) {
 	case *annotations.HttpRule_Get:
-		ep.Oas.Path = p.Get
+		data.HTTPPath = p.Get
 	case *annotations.HttpRule_Post:
-		ep.Oas.Path = p.Post
+		data.HTTPPath = p.Post
 	case *annotations.HttpRule_Put:
-		ep.Oas.Path = p.Put
+		data.HTTPPath = p.Put
 	case *annotations.HttpRule_Delete:
-		ep.Oas.Path = p.Delete
+		data.HTTPPath = p.Delete
 	case *annotations.HttpRule_Patch:
-		ep.Oas.Path = p.Patch
+		data.HTTPPath = p.Patch
 	}
 
-	// build EndpointFields
-
-	ep.Fields = []EndpointField{}
+	if rule.Body == "*" {
+		data.Request.ExpectBody = true
+	}
 
 	paramsInPath := (func() []string {
-		m := paramsInPathRgx.FindAllStringSubmatch(ep.Oas.Path, -1)
+		m := paramsInPathRgx.FindAllStringSubmatch(data.HTTPPath, -1)
 		return lo.Map(m, func(mm []string, i int) string {
 			return mm[1]
 		})
@@ -159,68 +112,25 @@ func (g *Generator) buildEndpoint(service *protogen.Service, method *protogen.Me
 		paramType := "query"
 		if lo.Contains(paramsInPath, f.Desc.TextName()) {
 			paramType = "path"
+		} else if data.Request.ExpectBody {
+			continue
 		}
 
-		ep.Fields = append(ep.Fields, EndpointField{
-			Name: f.GoName,
-			Proto: EndpointProtoField{
-				FieldType: proto.NewFieldType(f.Desc.Kind()),
-			},
-			Oas: EndpointOasField{
-				DataType:   toOasDataType(proto.NewFieldType(f.Desc.Kind())),
-				DataFormat: "", // not supported yet
-				ParamType:  oas.ParamType(paramType),
-			},
+		data.Request.Fields = append(data.Request.Fields, TemplateFieldData{
+			Name:      f.GoName,
+			GoType:    proto.NewFieldType(f.Desc.Kind()).ToGoTypeName(),
+			ParamType: paramType,
+			Repeated:  f.Desc.IsList(),
 		})
 	}
 
-	return ep
+	return &data, nil
 }
 
-func (g *Generator) buildTemplateData(oasPackageName, protoPackagePath, protoServiceName, connectPackagePath string, endpoints []Endpoint) TemplateData {
+func GenerateOther(name, packageName string, out io.Writer) error {
 	data := TemplateData{
-		OasPackageName:     oasPackageName,
-		ProtoPackagePath:   protoPackagePath,
-		ConnectPackagePath: connectPackagePath,
-		ProtoServiceName:   protoServiceName,
+		PackageName: packageName,
 	}
 
-	byPath := map[string][]Endpoint{}
-
-	for _, ep := range endpoints {
-		byPath[ep.Oas.Path] = append(byPath[ep.Oas.Path], ep)
-	}
-
-	for path, eps := range byPath {
-		for _, ep := range eps {
-			fields := []TemplateProtoFieldData{}
-			for _, f := range ep.Fields {
-				fields = append(fields, TemplateProtoFieldData{
-					Name:      f.Name,
-					GoType:    f.Proto.FieldType.ToGoTypeName(),
-					ParamType: string(f.Oas.ParamType),
-				})
-			}
-
-			protoRequest := TemplateProtoRequestData{
-				Name:   ep.Proto.Method,
-				Fields: fields,
-			}
-
-			protoMethod := TemplateProtoMethodData{
-				Name:    ep.Proto.Method,
-				Request: protoRequest,
-			}
-
-			data.Endpoints = append(data.Endpoints, TemplateEndpointData{
-				Method:      ep.Oas.Method,
-				Path:        path,
-				ProtoMethod: protoMethod,
-			})
-		}
-	}
-
-	data.FixOrders()
-
-	return data
+	return executeTemplate(name, data, out)
 }

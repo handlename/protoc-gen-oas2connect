@@ -1,8 +1,8 @@
 proto_file: {
     name: "petstore"
-    package: "petstore"
+    package: "petstorev3"
     message_type: {
-        name: "PetResponse"
+        name: "FindPetResponse"
         field: {
             name: "id"
             number: 1
@@ -17,7 +17,7 @@ proto_file: {
         }
     }
     message_type: {
-        name: "GetPetRequest"
+        name: "FindPetRequest"
         field: {
             name: "petId"
             number: 1
@@ -28,9 +28,9 @@ proto_file: {
     service: {
         name: "Pet"
         method: {
-            name: "FindPetByID"
-            input_type: "GetPetRequest"
-            output_type: "PetResponse"
+            name: "FindPet"
+            input_type: "FindPetRequest"
+            output_type: "FindPetResponse"
             options: {
                 [google.api.http] {
                     get: "/pet/{petId}"
@@ -39,6 +39,6 @@ proto_file: {
         }
     }
     options: {
-        go_package: "petstore/v1;pet"
+        go_package: "petstore/v3;petstorev3oas"
     }
 }

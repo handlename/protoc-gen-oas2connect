@@ -9,52 +9,41 @@ import (
 
 func TestTemplateDataFixOrders(t *testing.T) {
 	original := &TemplateData{
-		Endpoints: []TemplateEndpointData{
+		Services: []TemplateServiceData{
 			{
-				Method: "POST",
-				Path:   "/user",
+				Name: "Store",
+				Methods: []TemplateMethodData{
+					{Name: "FindStore"},
+					{Name: "UpdateStore"},
+				},
 			},
 			{
-				Method: "GET",
-				Path:   "/store",
-			},
-			{
-				Method: "GET",
-				Path:   "/pet/{petId}",
-			},
-			{
-				Method: "DELETE",
-				Path:   "/pet/{petId}",
-			},
-			{
-				Method: "PATCH",
-				Path:   "/pet/{petId}",
+				Name: "Pet",
+				Methods: []TemplateMethodData{
+					{Name: "FindPet"},
+					{Name: "AddPet"},
+					{Name: "DeletePet"},
+				},
 			},
 		},
 	}
 
 	expected := &TemplateData{
-		Endpoints: []TemplateEndpointData{
-			// Sort by Path, Method
+		Services: []TemplateServiceData{
 			{
-				Method: "DELETE",
-				Path:   "/pet/{petId}",
+				Name: "Pet",
+				Methods: []TemplateMethodData{
+					{Name: "AddPet"},
+					{Name: "DeletePet"},
+					{Name: "FindPet"},
+				},
 			},
 			{
-				Method: "GET",
-				Path:   "/pet/{petId}",
-			},
-			{
-				Method: "PATCH",
-				Path:   "/pet/{petId}",
-			},
-			{
-				Method: "GET",
-				Path:   "/store",
-			},
-			{
-				Method: "POST",
-				Path:   "/user",
+				Name: "Store",
+				Methods: []TemplateMethodData{
+					{Name: "FindStore"},
+					{Name: "UpdateStore"},
+				},
 			},
 		},
 	}
@@ -68,23 +57,26 @@ func TestTemplateDataFixOrders(t *testing.T) {
 
 func TestTemplateExecute(t *testing.T) {
 	data := TemplateData{
-		OasPackageName:     "petv1oas",
-		ProtoServiceName:   "Pet",
-		ProtoPackagePath:   "example/gen/pet/v1",
-		ConnectPackagePath: "example/gen/pet/v1/petv1connect",
-		Endpoints: []TemplateEndpointData{
+		PackageName:        "",
+		ProtoPackagePath:   "",
+		ConnectPackagePath: "",
+		Services: []TemplateServiceData{
 			{
-				Method: "POST",
-				Path:   "/pet/{petId}",
-				ProtoMethod: TemplateProtoMethodData{
-					Name: "UpdatePet",
-					Request: TemplateProtoRequestData{
-						Name: "",
-						Fields: []TemplateProtoFieldData{
-							{
-								Name:      "name",
-								GoType:    "string",
-								ParamType: "query",
+				Name: "",
+				Methods: []TemplateMethodData{
+					{
+						Name:       "",
+						HTTPMethod: "",
+						HTTPPath:   "",
+						Request: TemplateRequestData{
+							Name:       "",
+							ExpectBody: false,
+							Fields: []TemplateFieldData{
+								{
+									Name:      "",
+									GoType:    "",
+									ParamType: "",
+								},
 							},
 						},
 					},
@@ -94,7 +86,7 @@ func TestTemplateExecute(t *testing.T) {
 	}
 
 	var buf bytes.Buffer
-	if err := executeTemplate(data, &buf); err != nil {
+	if err := executeTemplate("Service", data, &buf); err != nil {
 		t.Fatal(err)
 	}
 }

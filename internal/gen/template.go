@@ -2,6 +2,7 @@ package gen
 
 import (
 	_ "embed"
+	"fmt"
 	"io"
 	"sort"
 	"strings"
@@ -11,59 +12,82 @@ import (
 	"golang.org/x/text/language"
 )
 
+//go:embed template/convert.go.tmpl
+var ConvertTmpl []byte
+
 //go:embed template/service.go.tmpl
 var ServiceTmpl []byte
 
+var Templates = map[string][]byte{
+	"Convert": ConvertTmpl,
+	"Service": ServiceTmpl,
+}
+
 type TemplateData struct {
-	OasPackageName     string
+	PackageName        string
 	ProtoPackagePath   string
-	ProtoServiceName   string
 	ConnectPackagePath string
-	Endpoints          []TemplateEndpointData
+	Services           []TemplateServiceData
 }
 
-type TemplateEndpointData struct {
-	Method      string
-	Path        string
-	ProtoMethod TemplateProtoMethodData
+type TemplateServiceData struct {
+	Name string
+	// Endpoints []TemplateEndpointData
+	Methods []TemplateMethodData
 }
 
-type TemplateProtoMethodData struct {
-	Name    string
-	Request TemplateProtoRequestData
+type TemplateMethodData struct {
+	Name       string
+	HTTPMethod string
+	HTTPPath   string
+	Request    TemplateRequestData
 }
 
-type TemplateProtoRequestData struct {
-	Name   string
-	Fields []TemplateProtoFieldData
+// TempalteRequestData is a data for proto request message
+type TemplateRequestData struct {
+	Name       string
+	ExpectBody bool
+	Fields     []TemplateFieldData
 }
 
-type TemplateProtoFieldData struct {
+type TemplateFieldData struct {
 	Name      string
 	GoType    string
-	ParamType string // "query" or "path"
+	ParamType string // "query", "path" or "body"
+	Repeated  bool
 }
 
-// FixOrders fixes the order of Endpoints by Path
+// FixOrders fixes the order of Services by its Name
 func (d *TemplateData) FixOrders() {
-	sort.SliceStable(d.Endpoints, func(i, j int) bool {
-		if d.Endpoints[i].Path == d.Endpoints[j].Path {
-			return d.Endpoints[i].Method < d.Endpoints[j].Method
-		}
-
-		return d.Endpoints[i].Path < d.Endpoints[j].Path
+	sort.SliceStable(d.Services, func(i, j int) bool {
+		return d.Services[i].Name < d.Services[j].Name
 	})
+
+	for _, service := range d.Services {
+		service.FixOrders()
+	}
 }
 
-// FixOrders fixes the order of Fields by Name
-func (d *TemplateProtoRequestData) FixOrders() {
+// FixOrders fixes the order of Methods by its Name
+func (d *TemplateServiceData) FixOrders() {
+	sort.SliceStable(d.Methods, func(i, j int) bool {
+		return d.Methods[i].Name < d.Methods[j].Name
+	})
+
+	for _, method := range d.Methods {
+		method.Request.FixOrders()
+	}
+}
+
+// FixOrders fixes the order of Fields by its Name
+func (d *TemplateRequestData) FixOrders() {
 	sort.SliceStable(d.Fields, func(i, j int) bool {
 		return d.Fields[i].Name < d.Fields[j].Name
 	})
 }
 
-func executeTemplate(data TemplateData, out io.Writer) error {
-	tmpl := template.New("service")
+func executeTemplate(name string, data TemplateData, out io.Writer) error {
+	tmpl := template.New(name)
 	tmpl = tmpl.Funcs(template.FuncMap{
 		"PathToFuncName": func(s string) string {
 			s = strings.ReplaceAll(s, "/", "_")
@@ -76,12 +100,17 @@ func executeTemplate(data TemplateData, out io.Writer) error {
 		},
 	})
 
-	tmpl, err := tmpl.Parse(string(ServiceTmpl))
+	tmplSrc, ok := Templates[name]
+	if !ok {
+		return fmt.Errorf("template %s not found", name)
+	}
+
+	tmpl, err := tmpl.Parse(string(tmplSrc))
 	if err != nil {
 		return err
 	}
 
-	if err := tmpl.ExecuteTemplate(out, "Service", data); err != nil {
+	if err := tmpl.ExecuteTemplate(out, name, data); err != nil {
 		return err
 	}
 
