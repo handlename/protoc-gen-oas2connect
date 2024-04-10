@@ -69,7 +69,8 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 		{{- end }}
 
 		if v, err := To{{ $field.GoType | ToCamel }}({{ $getValue }}); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			log.Printf("failed to convert {{ $field.Name }}=%s: %v", {{ $getValue }}, err)
+			http.Error(w, "invalid {{ $field.Name }}", http.StatusBadRequest)
 			return
 		} else {
 			pbr.{{ $field.Name }} = v
@@ -84,7 +85,8 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 
 		cr, err := http.NewRequest(http.MethodPost, protoPath+"{{ $method.Name }}", &cb)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			log.Printf("error on pass request to connect: %v", err)
+			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 			return
 		}
 		cr.Header.Set("content-type", "application/json")
