@@ -18,7 +18,7 @@ import (
 
 func Register{{ $service.Name }}Endpoints(mux *http.ServeMux, svc connect.{{ $service.Name }}Handler) {
 	path, handler := connect.New{{ $service.Name }}Handler(svc)
-	{{- range .Methods }}
+	{{- range $service.Methods }}
 	{{- $method := . }}
 	mux.HandleFunc(New{{ $service.Name }}{{ $method.Name }}Handler(path, handler))
 	{{- end }}
