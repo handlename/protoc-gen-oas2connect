@@ -2,6 +2,7 @@ package o2c
 
 import (
 	"flag"
+	"fmt"
 	"log/slog"
 	"path"
 	"path/filepath"
@@ -12,10 +13,21 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
+const version = "0.0.1"
 const extension = ".oas2connect.go"
 const packageSuffix = "oas2connect"
 
 func Run() int {
+	var showVersion bool
+	flag.BoolVar(&showVersion, "version", false, "show version")
+	flag.BoolVar(&showVersion, "v", false, "show version")
+	flag.Parse()
+
+	if showVersion {
+		fmt.Printf("protoc-gen-oas2connect v%s\n", version)
+		return 0
+	}
+
 	var generatedDir string
 	var packageName string
 	var connectPackagePath string
