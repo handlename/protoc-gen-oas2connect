@@ -22,6 +22,7 @@ func Register{{ $service.Name }}Endpoints(mux *http.ServeMux, svc connect.{{ $se
 	{{- $method := . }}
 	mux.HandleFunc(New{{ $service.Name }}{{ $method.Name }}Handler(path, handler))
 	{{- end }}
+	log.Printf("registered {{ $service.Methods | len }} endpoints of {{ $service.Name }}")
 }
 
 {{- range $service.Methods }}
