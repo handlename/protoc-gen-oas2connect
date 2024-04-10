@@ -33,11 +33,11 @@ func TestBuildTemplateData(t *testing.T) {
 		},
 		{
 			name:                 "success",
-			inTextproto:          "petstore.textproto",
+			inTextproto:          "pet.textproto",
 			inProtoPackagePath:   "example/gen/pet/v1",
 			inConnectPackagePath: "example/gen/pet/v1/petv1connect",
 			expected: TemplateData{
-				PackageName:        "petstorev3oas",
+				PackageName:        "petstorev3",
 				ProtoPackagePath:   "example/gen/pet/v1",
 				ConnectPackagePath: "example/gen/pet/v1/petv1connect",
 				Services: []TemplateServiceData{
@@ -45,14 +45,25 @@ func TestBuildTemplateData(t *testing.T) {
 						Name: "Pet",
 						Methods: []TemplateMethodData{
 							{
+								Name:       "AddPet",
+								HTTPMethod: "POST",
+								HTTPPath:   "/pet",
+								Request: TemplateRequestData{
+									Name:       "AddPetRequest",
+									Fields:     []TemplateFieldData{},
+									ExpectBody: true,
+								},
+							},
+							{
 								Name:       "FindPet",
 								HTTPMethod: "GET",
-								HTTPPath:   "/pet/{petId}",
+								HTTPPath:   "/pet/{pet_id}",
 								Request: TemplateRequestData{
 									Name: "FindPetRequest",
 									Fields: []TemplateFieldData{
 										{
-											Name:      "PetId",
+											Name:      "pet_id",
+											GoName:    "PetId",
 											GoType:    "int64",
 											ParamType: "path",
 										},

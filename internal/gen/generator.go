@@ -117,7 +117,8 @@ func buildTemplateMethodData(method *protogen.Method) (*TemplateMethodData, erro
 		}
 
 		data.Request.Fields = append(data.Request.Fields, TemplateFieldData{
-			Name:      f.GoName,
+			Name:      f.Desc.TextName(),
+			GoName:    f.GoName,
 			GoType:    proto.NewFieldType(f.Desc.Kind()).ToGoTypeName(),
 			ParamType: paramType,
 			Repeated:  f.Desc.IsList(),

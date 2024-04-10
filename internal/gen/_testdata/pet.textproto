@@ -1,0 +1,68 @@
+proto_file: {
+    name: "pet"
+    package: "petstore.v3"
+    message_type: {
+        name: "AddPetRequest",
+        field: {
+            name: "name"
+            number: 1
+            type: TYPE_STRING
+        }
+    }
+    message_type: {
+        name: "AddPetResponse",
+        field: {
+            name: "pet_id"
+            number: 1
+            type: TYPE_INT64
+        }
+    }
+    message_type: {
+        name: "FindPetRequest"
+        field: {
+            name: "pet_id"
+            number: 1
+            type: TYPE_INT64
+        }
+    },
+    message_type: {
+        name: "FindPetResponse"
+        field: {
+            name: "pet_id"
+            number: 1
+            type: TYPE_INT64
+        }
+        field: {
+            name: "name"
+            number: 2
+            type: TYPE_STRING
+        }
+    }
+    service: {
+        name: "Pet"
+        method: {
+            name: "AddPet",
+            input_type: "AddPetRequest",
+            output_type: "AddPetResponse",
+            options: {
+                [google.api.http] {
+                    post: "/pet"
+                    body: "*"
+                }
+            }
+        },
+        method: {
+            name: "FindPet"
+            input_type: "FindPetRequest"
+            output_type: "FindPetResponse"
+            options: {
+                [google.api.http] {
+                    get: "/pet/{pet_id}"
+                }
+            }
+        }
+    }
+    options: {
+        go_package: "petstore/v3;petstorev3"
+    }
+}

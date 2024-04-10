@@ -56,7 +56,7 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 				}
 				params = append(params, v)
 			}
-			pbr.{{ $field.Name }} = params
+			pbr.{{ $field.GoName }} = params
 		}
 
 		{{- else }}{{/* if not $field.Repeated */}}
@@ -73,7 +73,7 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 			http.Error(w, "invalid {{ $field.Name }}", http.StatusBadRequest)
 			return
 		} else {
-			pbr.{{ $field.Name }} = v
+			pbr.{{ $field.GoName }} = v
 		}
 
 		{{- end }}{{/* if $field.Repeated */}}

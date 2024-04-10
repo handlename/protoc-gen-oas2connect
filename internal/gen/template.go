@@ -51,10 +51,21 @@ type TemplateRequestData struct {
 }
 
 type TemplateFieldData struct {
-	Name      string
-	GoType    string
-	ParamType string // "query", "path" or "body"
-	Repeated  bool
+	// Name is name used in proto file
+	Name string
+
+	// GoName is name used in Go code
+	GoName string
+
+	// GoType is type used in Go code
+	GoType string
+
+	// ParamType is where the field is located
+	// "query", "path" or "body"
+	ParamType string
+
+	// Repeated is true if the field is allowed multiple values
+	Repeated bool
 }
 
 // FixOrders fixes the order of Services by its Name
