@@ -1,0 +1,16 @@
+version: v1
+plugins:
+  - plugin: go
+    out: gen
+    opt: paths=source_relative
+  - plugin: connect-go
+    out: gen
+    opt: paths=source_relative
+  - plugin: oas2connect
+    path: ./protoc-gen-oas2connect
+    out: gen
+    opt:
+      - paths=source_relative
+      - connect_package_path=petstore/gen/petstore/v3/petstorev3connect
+  - plugin: oas
+    out: oas
