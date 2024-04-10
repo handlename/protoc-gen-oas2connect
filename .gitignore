@@ -24,3 +24,5 @@
 go.work
 
 protoc-gen-oas2connect
+
+dist/
