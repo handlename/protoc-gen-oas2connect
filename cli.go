@@ -13,7 +13,6 @@ import (
 	"google.golang.org/protobuf/compiler/protogen"
 )
 
-const version = "0.0.1"
 const extension = ".oas2connect.go"
 const packageSuffix = "oas2connect"
 
