@@ -22,33 +22,44 @@ protoc \
 or use [Buf](https://buf.build/) (Recommended)
 
 ```yaml
-version: v1
-breaking:
-  use:
-    - FILE
+# buf.yaml
+version: v2
+deps:
+  - buf.build/googleapis/googleapis
 lint:
   use:
     - DEFAULT
-deps:
-  - buf.build/googleapis/googleapis
+  except:
+    - FIELD_NOT_REQUIRED
+    - PACKAGE_NO_IMPORT_CYCLE
+  disallow_comment_ignores: true
+breaking:
+  use:
+    - FILE
+  except:
+    - EXTENSION_NO_DELETE
+    - FIELD_SAME_DEFAULT
+
 ```
 
 ```yaml
 # buf.gen.yaml
-version: v1
+version: v2
 plugins:
-  - plugin: go
-    out: gen
-    opt: paths=source_relative
-  - plugin: connect-go
-    out: gen
-    opt: paths=source_relative
-  - plugin: oas2connect
+  - remote: buf.build/protocolbuffers/go
     out: gen
     opt:
       - paths=source_relative
-      - connect_package_path=path/to/generated/connect/code
-  - plugin: oas
+  - remote: buf.build/connectrpc/go
+    out: gen
+    opt:
+      - paths=source_relative
+  - local: ./protoc-gen-oas2connect
+    out: gen
+    opt:
+      - paths=source_relative
+      - connect_package_path=petstore/gen/petstore/v3/petstorev3connect
+  - remote: buf.build/grpc-ecosystem/openapiv2
     out: oas
 ```
 
