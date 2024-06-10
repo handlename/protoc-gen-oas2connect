@@ -1,16 +1,21 @@
-version: v1
+version: v2
 plugins:
-  - plugin: go
+  - remote: buf.build/protocolbuffers/go
     out: gen
-    opt: paths=source_relative
-  - plugin: connect-go
-    out: gen
-    opt: paths=source_relative
-  - plugin: oas2connect
-    path: ./protoc-gen-oas2connect
+    opt:
+      - paths=source_relative
+  # - remote: buf.build/grpc/go:v1.4.0
+  #   out: gen
+  #   opt:
+  #     - paths=source_relative
+  - local: ./protoc-gen-oas2connect
     out: gen
     opt:
       - paths=source_relative
       - connect_package_path=petstore/gen/petstore/v3/petstorev3connect
-  - plugin: oas
+  - remote: buf.build/grpc-ecosystem/openapiv2:v2.20.0
     out: oas
+    opt:
+      - allow_merge=true
+      - merge_file_name=openapiv2
+      - output_format=yaml

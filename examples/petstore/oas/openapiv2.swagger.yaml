@@ -1,0 +1,292 @@
+swagger: "2.0"
+info:
+  title: petstore/v3/pet.proto
+  version: version not set
+tags:
+  - name: PetService
+  - name: StoreService
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /pet:
+    post:
+      operationId: PetService_AddPet
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3AddPetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v3AddPetRequest'
+      tags:
+        - PetService
+    put:
+      operationId: PetService_UpdatePet
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3UpdatePetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v3UpdatePetRequest'
+      tags:
+        - PetService
+  /pet/findByStatus:
+    get:
+      operationId: PetService_FindPetsByStatus
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3FindPetsByStatusResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: status
+          in: query
+          required: false
+          type: string
+      tags:
+        - PetService
+  /pet/findByTags:
+    get:
+      operationId: PetService_FindPetsByTags
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3FindPetsByTagsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: tags
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - PetService
+  /pet/{petId}:
+    get:
+      operationId: PetService_FindPet
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3FindPetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - PetService
+    delete:
+      operationId: PetService_DeletePet
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3DeletePetResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          type: string
+          format: int64
+      tags:
+        - PetService
+  /store/order:
+    post:
+      operationId: StoreService_AddStoreOrder
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/v3AddStoreOrderResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/rpcStatus'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/v3AddStoreOrderRequest'
+      tags:
+        - StoreService
+definitions:
+  protobufAny:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  rpcStatus:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/protobufAny'
+  v3AddPetRequest:
+    type: object
+  v3AddPetResponse:
+    type: object
+    properties:
+      pet:
+        $ref: '#/definitions/v3Pet'
+  v3AddStoreOrderRequest:
+    type: object
+    properties:
+      order:
+        $ref: '#/definitions/v3Order'
+  v3AddStoreOrderResponse:
+    type: object
+    properties:
+      order:
+        $ref: '#/definitions/v3Order'
+  v3Category:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      name:
+        type: string
+  v3DeletePetResponse:
+    type: object
+  v3FindPetResponse:
+    type: object
+    properties:
+      pet:
+        $ref: '#/definitions/v3Pet'
+  v3FindPetsByStatusResponse:
+    type: object
+    properties:
+      pets:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v3Pet'
+  v3FindPetsByTagsResponse:
+    type: object
+    properties:
+      pets:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v3Pet'
+  v3Order:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      petId:
+        type: string
+        format: int64
+      quantity:
+        type: integer
+        format: int32
+      shipDate:
+        type: string
+      status:
+        type: string
+      complete:
+        type: boolean
+  v3Pet:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      name:
+        type: string
+      category:
+        $ref: '#/definitions/v3Category'
+      photoUrls:
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v3Tag'
+      status:
+        type: string
+  v3Tag:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      name:
+        type: string
+  v3UpdatePetRequest:
+    type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      name:
+        type: string
+      category:
+        $ref: '#/definitions/v3Category'
+      photoUrls:
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v3Tag'
+      status:
+        type: string
+  v3UpdatePetResponse:
+    type: object
+    properties:
+      pet:
+        $ref: '#/definitions/v3Pet'
