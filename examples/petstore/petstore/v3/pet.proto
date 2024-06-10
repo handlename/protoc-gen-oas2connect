@@ -40,11 +40,11 @@ service PetService {
 
 message UpdatePetRequest {
   int64 id = 1;
-  string name = 2;
-  Category category = 3;
+  optional string name = 2;
+  optional Category category = 3;
   repeated string photo_urls = 4;
   repeated Tag tags = 5;
-  string status = 6;
+  optional string status = 6;
 }
 
 message UpdatePetResponse {
