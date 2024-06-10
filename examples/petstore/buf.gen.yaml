@@ -4,10 +4,6 @@ plugins:
     out: gen
     opt:
       - paths=source_relative
-  # - remote: buf.build/grpc/go:v1.4.0
-  #   out: gen
-  #   opt:
-  #     - paths=source_relative
   - local: ./protoc-gen-oas2connect
     out: gen
     opt:
