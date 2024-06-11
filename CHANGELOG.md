@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.0.4](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.3...v0.0.4) - 2024-06-11
+- Support optional (really) by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/9
+
 ## [v0.0.3](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.2...v0.0.3) - 2024-06-10
 - Migrate buf config in examples to v2 by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/5
 - Support "optional" by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/7
