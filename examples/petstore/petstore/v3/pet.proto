@@ -58,7 +58,7 @@ message AddPetResponse {
 }
 
 message FindPetsByStatusRequest {
-  string status = 1;
+  optional string status = 1;
 }
 
 message FindPetsByStatusResponse {

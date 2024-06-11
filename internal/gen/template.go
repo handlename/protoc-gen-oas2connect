@@ -66,6 +66,9 @@ type TemplateFieldData struct {
 
 	// Repeated is true if the field is allowed multiple values
 	Repeated bool
+
+	// Optional is true if the field is optional
+	Optional bool
 }
 
 // FixOrders fixes the order of Services by its Name

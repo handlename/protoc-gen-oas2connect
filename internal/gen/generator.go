@@ -122,6 +122,7 @@ func buildTemplateMethodData(method *protogen.Method) (*TemplateMethodData, erro
 			GoType:    proto.NewFieldType(f.Desc.Kind()).ToGoTypeName(),
 			ParamType: paramType,
 			Repeated:  f.Desc.IsList(),
+			Optional:  f.Desc.HasOptionalKeyword(),
 		})
 	}
 

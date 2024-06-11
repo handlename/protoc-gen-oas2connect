@@ -76,12 +76,14 @@ func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Ha
 	return "GET /pet/findByStatus", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetsByStatusRequest{}
 
-		if v, err := ToString(r.URL.Query().Get("status")); err != nil {
-			log.Printf("failed to convert status=%s: %v", r.URL.Query().Get("status"), err)
-			http.Error(w, "invalid status", http.StatusBadRequest)
-			return
-		} else {
-			pbr.Status = v
+		if v := r.URL.Query().Get("status"); v != "" {
+			if vv, err := ToString(v); err != nil {
+				log.Printf("failed to convert status=%s: %v", v, err)
+				http.Error(w, "invalid status", http.StatusBadRequest)
+				return
+			} else {
+				pbr.Status = &vv
+			}
 		}
 
 		var cb bytes.Buffer
