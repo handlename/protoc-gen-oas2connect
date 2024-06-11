@@ -68,6 +68,20 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 		{{- $getValue = printf `r.PathValue("%s")` $field.Name }}
 		{{- end }}
 
+		{{- if $field.Optional }}
+
+		if v := {{ $getValue }}; v != "" {
+			if vv, err := To{{ $field.GoType | ToCamel }}(v); err != nil {
+				log.Printf("failed to convert {{ $field.Name }}=%s: %v", v, err)
+				http.Error(w, "invalid {{ $field.Name }}", http.StatusBadRequest)
+				return
+			} else {
+				pbr.{{ $field.GoName }} = &vv
+			}
+		}
+
+		{{- else }}{{/* if not $field.Optional */}}
+
 		if v, err := To{{ $field.GoType | ToCamel }}({{ $getValue }}); err != nil {
 			log.Printf("failed to convert {{ $field.Name }}=%s: %v", {{ $getValue }}, err)
 			http.Error(w, "invalid {{ $field.Name }}", http.StatusBadRequest)
@@ -76,6 +90,7 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 			pbr.{{ $field.GoName }} = v
 		}
 
+		{{- end }}{{/* if $field.Optional */}}
 		{{- end }}{{/* if $field.Repeated */}}
 
 		{{- end }}{{/* range $method.Request.Fields */}}
