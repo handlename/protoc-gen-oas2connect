@@ -83,7 +83,7 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 		{{- else }}{{/* if not $field.Optional */}}
 
 		if v, err := To{{ $field.GoType | ToCamel }}({{ $getValue }}); err != nil {
-			log.Printf("failed to convert {{ $field.Name }}=%s: %v", v, err)
+			log.Printf("failed to convert {{ $field.Name }}=%s: %v", {{ $getValue }}, err)
 			http.Error(w, "invalid {{ $field.Name }}", http.StatusBadRequest)
 			return
 		} else {

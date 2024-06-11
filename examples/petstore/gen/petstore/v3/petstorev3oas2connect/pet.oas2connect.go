@@ -136,7 +136,7 @@ func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler) (s
 		pbr := pb.FindPetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
-			log.Printf("failed to convert pet_id=%s: %v", v, err)
+			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)
 			http.Error(w, "invalid pet_id", http.StatusBadRequest)
 			return
 		} else {
@@ -162,7 +162,7 @@ func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler) 
 		pbr := pb.DeletePetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
-			log.Printf("failed to convert pet_id=%s: %v", v, err)
+			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)
 			http.Error(w, "invalid pet_id", http.StatusBadRequest)
 			return
 		} else {
