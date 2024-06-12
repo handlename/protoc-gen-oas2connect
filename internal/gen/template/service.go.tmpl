@@ -16,19 +16,25 @@ import (
 {{- range .Services }}
 {{- $service := . }}
 
-func Register{{ $service.Name }}Endpoints(mux *http.ServeMux, svc connect.{{ $service.Name }}Handler) {
+func Register{{ $service.Name }}Endpoints(mux ServeMux, svc connect.{{ $service.Name }}Handler, middleware Middleware) {
 	path, handler := connect.New{{ $service.Name }}Handler(svc)
+
+	mid := middleware
+	if mid == nil {
+		mid = NoopMiddleware
+	}
+
 	{{- range $service.Methods }}
 	{{- $method := . }}
-	mux.HandleFunc(New{{ $service.Name }}{{ $method.Name }}Handler(path, handler))
+	mux.Handle(New{{ $service.Name }}{{ $method.Name }}Handler(path, handler, mid))
 	{{- end }}
 	log.Printf("registered {{ $service.Methods | len }} endpoints of {{ $service.Name }}")
 }
 
 {{- range $service.Methods }}
 {{- $method := . }}
-func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "{{ $method.HTTPMethod }} {{ $method.HTTPPath }}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.{{ $method.Request.Name }}{}
 
 		{{- if $method.Request.ExpectBody }}
@@ -108,6 +114,8 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "{{ $method.HTTPMethod }} {{ $method.HTTPPath }}", mid(handler)
 }
 {{- end }}{{/* range $service.Methods */}}
 {{- end }}{{/* range .Services */}}

@@ -12,13 +12,18 @@ import (
 	pb "petstore/gen/petstore/v3"
 )
 
-func RegisterStoreServiceEndpoints(mux *http.ServeMux, svc connect.StoreServiceHandler) {
+func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler, middleware Middleware) {
 	path, handler := connect.NewStoreServiceHandler(svc)
-	mux.HandleFunc(NewStoreServiceAddStoreOrderHandler(path, handler))
+
+	mid := middleware
+	if mid == nil {
+		mid = NoopMiddleware
+	}
+	mux.Handle(NewStoreServiceAddStoreOrderHandler(path, handler, mid))
 	log.Printf("registered 1 endpoints of StoreService")
 }
-func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "POST /store/order", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.AddStoreOrderRequest{}
 		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -41,4 +46,6 @@ func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Han
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "POST /store/order", mid(handler)
 }

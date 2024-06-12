@@ -18,9 +18,13 @@ var ConvertTmpl []byte
 //go:embed template/service.go.tmpl
 var ServiceTmpl []byte
 
+//go:embed template/types.go.tmpl
+var TypesTmpl []byte
+
 var Templates = map[string][]byte{
 	"Convert": ConvertTmpl,
 	"Service": ServiceTmpl,
+	"Types":   TypesTmpl,
 }
 
 type TemplateData struct {
