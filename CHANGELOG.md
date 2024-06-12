@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.0.5](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.4...v0.0.5) - 2024-06-12
+- Support middleware by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/11
+
 ## [v0.0.4](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.3...v0.0.4) - 2024-06-11
 - Support optional (really) by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/9
 
