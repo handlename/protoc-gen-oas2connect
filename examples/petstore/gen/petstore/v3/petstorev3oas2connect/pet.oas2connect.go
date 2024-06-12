@@ -12,18 +12,23 @@ import (
 	pb "petstore/gen/petstore/v3"
 )
 
-func RegisterPetServiceEndpoints(mux *http.ServeMux, svc connect.PetServiceHandler) {
+func RegisterPetServiceEndpoints(mux ServeMux, svc connect.PetServiceHandler, middleware Middleware) {
 	path, handler := connect.NewPetServiceHandler(svc)
-	mux.HandleFunc(NewPetServiceUpdatePetHandler(path, handler))
-	mux.HandleFunc(NewPetServiceAddPetHandler(path, handler))
-	mux.HandleFunc(NewPetServiceFindPetsByStatusHandler(path, handler))
-	mux.HandleFunc(NewPetServiceFindPetsByTagsHandler(path, handler))
-	mux.HandleFunc(NewPetServiceFindPetHandler(path, handler))
-	mux.HandleFunc(NewPetServiceDeletePetHandler(path, handler))
+
+	mid := middleware
+	if mid == nil {
+		mid = NoopMiddleware
+	}
+	mux.Handle(NewPetServiceUpdatePetHandler(path, handler, mid))
+	mux.Handle(NewPetServiceAddPetHandler(path, handler, mid))
+	mux.Handle(NewPetServiceFindPetsByStatusHandler(path, handler, mid))
+	mux.Handle(NewPetServiceFindPetsByTagsHandler(path, handler, mid))
+	mux.Handle(NewPetServiceFindPetHandler(path, handler, mid))
+	mux.Handle(NewPetServiceDeletePetHandler(path, handler, mid))
 	log.Printf("registered 6 endpoints of PetService")
 }
-func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "PUT /pet", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.UpdatePetRequest{}
 		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -46,9 +51,11 @@ func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler) 
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "PUT /pet", mid(handler)
 }
-func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "POST /pet", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.AddPetRequest{}
 		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
@@ -71,9 +78,11 @@ func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler) (st
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "POST /pet", mid(handler)
 }
-func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "GET /pet/findByStatus", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetsByStatusRequest{}
 
 		if v := r.URL.Query().Get("status"); v != "" {
@@ -99,9 +108,11 @@ func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Ha
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "GET /pet/findByStatus", mid(handler)
 }
-func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "GET /pet/findByTags", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetsByTagsRequest{}
 
 		if rawParams, ok := r.URL.Query()["tags"]; ok {
@@ -130,9 +141,11 @@ func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Hand
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "GET /pet/findByTags", mid(handler)
 }
-func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "GET /pet/{pet_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
@@ -156,9 +169,11 @@ func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler) (s
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "GET /pet/{pet_id}", mid(handler)
 }
-func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler) (string, func(http.ResponseWriter, *http.Request)) {
-	return "DELETE /pet/{pet_id}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.DeletePetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
@@ -182,4 +197,6 @@ func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler) 
 
 		protoHandler.ServeHTTP(w, cr)
 	})
+
+	return "DELETE /pet/{pet_id}", mid(handler)
 }

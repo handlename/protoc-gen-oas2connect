@@ -52,10 +52,17 @@ func (s *PetstoreServer) AddPet(ctx context.Context, req *connect.Request[petsto
 	return res, nil
 }
 
+func loggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		log.Printf("[INFO] %s %s", r.Method, r.URL.Path)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func main() {
 	server := &PetstoreServer{}
 	mux := http.NewServeMux()
-	petstorev3oas2connect.RegisterPetServiceEndpoints(mux, server)
+	petstorev3oas2connect.RegisterPetServiceEndpoints(mux, server, loggingMiddleware)
 
 	port := 8080
 	log.Printf("start to listen on %d", port)

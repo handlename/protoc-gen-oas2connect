@@ -73,6 +73,10 @@ func Run() int {
 			return err
 		}
 
+		if err := gen.GenerateOther("Types", packageName, plugin.NewGeneratedFile(generatedDir+"/types.go", "")); err != nil {
+			return err
+		}
+
 		return nil
 	})
 
