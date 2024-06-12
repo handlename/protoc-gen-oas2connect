@@ -69,7 +69,7 @@ func Run() int {
 			}
 		}
 
-		if err := generateConvertFile(plugin.NewGeneratedFile(generatedDir+"/convert.go", ""), packageName); err != nil {
+		if err := gen.GenerateOther("Convert", packageName, plugin.NewGeneratedFile(generatedDir+"/convert.go", "")); err != nil {
 			return err
 		}
 
@@ -90,12 +90,4 @@ func modifyGeneratedFilenamePrefix(file *protogen.File) {
 		string(file.GoPackageName),
 		path.Base(slashed),
 	)
-}
-
-func generateConvertFile(g *protogen.GeneratedFile, packageName string) error {
-	if err := gen.GenerateOther("Convert", packageName, g); err != nil {
-		return err
-	}
-
-	return nil
 }
