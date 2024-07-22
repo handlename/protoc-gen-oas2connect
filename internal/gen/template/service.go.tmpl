@@ -112,7 +112,7 @@ func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHand
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "{{ $method.HTTPMethod }} {{ $method.HTTPPath }}", mid(handler)

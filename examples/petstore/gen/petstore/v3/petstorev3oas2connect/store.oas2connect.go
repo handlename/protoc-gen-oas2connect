@@ -44,7 +44,7 @@ func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Han
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "POST /store/order", mid(handler)
