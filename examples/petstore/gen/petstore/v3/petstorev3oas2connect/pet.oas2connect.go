@@ -49,7 +49,7 @@ func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, 
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "PUT /pet", mid(handler)
@@ -76,7 +76,7 @@ func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "POST /pet", mid(handler)
@@ -106,7 +106,7 @@ func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Ha
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "GET /pet/findByStatus", mid(handler)
@@ -139,7 +139,7 @@ func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Hand
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "GET /pet/findByTags", mid(handler)
@@ -167,7 +167,7 @@ func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mi
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "GET /pet/{pet_id}", mid(handler)
@@ -195,7 +195,7 @@ func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler, 
 		}
 		cr.Header.Set("content-type", "application/json")
 
-		protoHandler.ServeHTTP(w, cr)
+		protoHandler.ServeHTTP(w, cr.WithContext(r.Context()))
 	})
 
 	return "DELETE /pet/{pet_id}", mid(handler)
