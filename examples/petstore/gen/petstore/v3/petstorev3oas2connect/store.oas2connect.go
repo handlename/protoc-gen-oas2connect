@@ -27,14 +27,19 @@ func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler
 }
 func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.AddStoreOrderRequest{}
-		defer r.Body.Close()
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := new(bytes.Buffer)
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.AddStoreOrderRequest{}
+		body := buf.Bytes()
 		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
