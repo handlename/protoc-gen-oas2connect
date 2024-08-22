@@ -1,7 +1,6 @@
 package gen
 
 import (
-	"bytes"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -85,8 +84,7 @@ func TestTemplateExecute(t *testing.T) {
 		},
 	}
 
-	var buf bytes.Buffer
-	if err := executeTemplate("Service", data, &buf); err != nil {
+	if _, err := executeTemplate("Service", data); err != nil {
 		t.Fatal(err)
 	}
 }
