@@ -26,7 +26,14 @@ func Generate(file *protogen.File, protoPackagePath, connectPackagePath string, 
 }
 
 func GenerateWithData(data *TemplateData, out io.Writer) error {
-	return executeTemplate("Service", *data, out)
+	code, err := executeTemplate("Service", *data)
+	if err != nil {
+		return err
+	}
+
+	out.Write(code)
+
+	return nil
 }
 
 func buildTemplateData(file *protogen.File, protoPackagePath, connectPackagePath string) (*TemplateData, error) {
@@ -134,5 +141,12 @@ func GenerateOther(name, packageName string, out io.Writer) error {
 		PackageName: packageName,
 	}
 
-	return executeTemplate(name, data, out)
+	code, err := executeTemplate(name, data)
+	if err != nil {
+		return err
+	}
+
+	out.Write(code)
+
+	return nil
 }

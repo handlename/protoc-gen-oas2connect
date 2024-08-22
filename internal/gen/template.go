@@ -1,9 +1,9 @@
 package gen
 
 import (
+	"bytes"
 	_ "embed"
 	"fmt"
-	"io"
 	"sort"
 	"strings"
 	"text/template"
@@ -104,7 +104,7 @@ func (d *TemplateRequestData) FixOrders() {
 	})
 }
 
-func executeTemplate(name string, data TemplateData, out io.Writer) error {
+func executeTemplate(name string, data TemplateData) ([]byte, error) {
 	tmpl := template.New(name)
 	tmpl = tmpl.Funcs(template.FuncMap{
 		"PathToFuncName": func(s string) string {
@@ -120,17 +120,19 @@ func executeTemplate(name string, data TemplateData, out io.Writer) error {
 
 	tmplSrc, ok := Templates[name]
 	if !ok {
-		return fmt.Errorf("template %s not found", name)
+		return nil, fmt.Errorf("template %s not found", name)
 	}
 
 	tmpl, err := tmpl.Parse(string(tmplSrc))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	if err := tmpl.ExecuteTemplate(out, name, data); err != nil {
-		return err
+	buf := bytes.NewBuffer(nil)
+
+	if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return buf.Bytes(), err
 }
