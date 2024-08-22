@@ -1,5 +1,9 @@
 # Changelog
 
+## [v0.0.7](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.6...v0.0.7) - 2024-08-22
+- accept cameCased field name in request message by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/16
+- format generated codes by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/18
+
 ## [v0.0.6](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.5...v0.0.6) - 2024-07-22
 - Relay original context by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/13
 - Update: goreleaser/goreleaser-action@v6 by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/15
