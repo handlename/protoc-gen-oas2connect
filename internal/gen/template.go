@@ -125,13 +125,13 @@ func executeTemplate(name string, data TemplateData) ([]byte, error) {
 
 	tmpl, err := tmpl.Parse(string(tmplSrc))
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
 
 	buf := bytes.NewBuffer(nil)
 
 	if err := tmpl.ExecuteTemplate(buf, name, data); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to execute template: %w", err)
 	}
 
 	return buf.Bytes(), err
