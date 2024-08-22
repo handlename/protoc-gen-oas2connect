@@ -9,8 +9,8 @@ import (
 	"log"
 	"net/http"
 
-	connect "petstore/gen/petstore/v3/petstorev3connect"
 	pb "petstore/gen/petstore/v3"
+	connect "petstore/gen/petstore/v3/petstorev3connect"
 
 	"google.golang.org/protobuf/encoding/protojson"
 )

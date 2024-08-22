@@ -8,6 +8,7 @@ import (
 
 	"github.com/handlename/protoc-gen-oas2connect/internal/proto"
 	"github.com/samber/lo"
+	"golang.org/x/tools/imports"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/protobuf/compiler/protogen"
 	pt "google.golang.org/protobuf/proto"
@@ -31,7 +32,12 @@ func GenerateWithData(data *TemplateData, out io.Writer) error {
 		return err
 	}
 
-	out.Write(code)
+	fcode, err := imports.Process("service.go", code, nil)
+	if err != nil {
+		return fmt.Errorf("failed to format code: %w", err)
+	}
+
+	out.Write(fcode)
 
 	return nil
 }
@@ -146,7 +152,12 @@ func GenerateOther(name, packageName string, out io.Writer) error {
 		return err
 	}
 
-	out.Write(code)
+	fcode, err := imports.Process("service.go", code, nil)
+	if err != nil {
+		return fmt.Errorf("failed to format code: %w", err)
+	}
+
+	out.Write(fcode)
 
 	return nil
 }
