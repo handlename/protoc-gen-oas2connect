@@ -40,7 +40,7 @@ service PetService {
 
 message UpdatePetRequest {
   int64 id = 1;
-  optional string name = 2;
+  string name = 2;
   optional Category category = 3;
   repeated string photo_urls = 4;
   repeated Tag tags = 5;
@@ -51,7 +51,14 @@ message UpdatePetResponse {
   Pet pet = 1;
 }
 
-message AddPetRequest {}
+message AddPetRequest {
+  int64 id = 1;
+  string name = 2;
+  optional Category category = 3;
+  repeated string photo_urls = 4;
+  repeated Tag tags = 5;
+  optional string status = 6;
+}
 
 message AddPetResponse {
   Pet pet = 1;

@@ -35,18 +35,41 @@ func (s *PetstoreServer) FindPet(ctx context.Context, req *connect.Request[petst
 }
 
 func (s *PetstoreServer) AddPet(ctx context.Context, req *connect.Request[petstorev3.AddPetRequest]) (*connect.Response[petstorev3.AddPetResponse], error) {
+	pet := &petstorev3.Pet{
+		Id:        req.Msg.GetId(),
+		Name:      req.Msg.GetName(),
+		PhotoUrls: []string{},
+		Tags:      []*petstorev3.Tag{},
+	}
+
+	if req.Msg.Category != nil {
+		pet.Category = &petstorev3.Category{
+			Id:   req.Msg.GetCategory().GetId(),
+			Name: req.Msg.GetCategory().GetName(),
+		}
+	}
+
+	if req.Msg.PhotoUrls != nil {
+		for _, p := range req.Msg.GetPhotoUrls() {
+			pet.PhotoUrls = append(pet.PhotoUrls, p)
+		}
+	}
+
+	if req.Msg.Tags != nil {
+		for _, t := range req.Msg.GetTags() {
+			pet.Tags = append(pet.Tags, &petstorev3.Tag{
+				Id:   t.GetId(),
+				Name: t.GetName(),
+			})
+		}
+	}
+
+	if req.Msg.Status != nil {
+		pet.Status = req.Msg.GetStatus()
+	}
+
 	res := connect.NewResponse(&petstorev3.AddPetResponse{
-		Pet: &petstorev3.Pet{
-			Id:   0,
-			Name: "tama",
-			Category: &petstorev3.Category{
-				Id:   1,
-				Name: "cat",
-			},
-			PhotoUrls: []string{},
-			Tags:      []*petstorev3.Tag{},
-			Status:    "hungry",
-		},
+		Pet: pet,
 	})
 
 	return res, nil

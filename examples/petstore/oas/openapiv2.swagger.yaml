@@ -171,6 +171,25 @@ definitions:
           $ref: '#/definitions/protobufAny'
   v3AddPetRequest:
     type: object
+    properties:
+      id:
+        type: string
+        format: int64
+      name:
+        type: string
+      category:
+        $ref: '#/definitions/v3Category'
+      photoUrls:
+        type: array
+        items:
+          type: string
+      tags:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/v3Tag'
+      status:
+        type: string
   v3AddPetResponse:
     type: object
     properties:
