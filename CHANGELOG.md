@@ -1,5 +1,8 @@
 # Changelog
 
+## [v0.0.8](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.7...v0.0.8) - 2024-08-22
+- request body may be nil by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/19
+
 ## [v0.0.7](https://github.com/handlename/protoc-gen-oas2connect/compare/v0.0.6...v0.0.7) - 2024-08-22
 - accept cameCased field name in request message by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/16
 - format generated codes by @handlename in https://github.com/handlename/protoc-gen-oas2connect/pull/18
