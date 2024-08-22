@@ -38,21 +38,25 @@ func Register{{ $service.Name }}Endpoints(mux ServeMux, svc connect.{{ $service.
 {{- $method := . }}
 func New{{ $service.Name }}{{ $method.Name }}Handler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.{{ $method.Request.Name }}{}
-		defer r.Body.Close()
-
 		{{- if $method.Request.ExpectBody }}
-		body, err := io.ReadAll(r.Body)
+		buf := new(bytes.Buffer)
 		{{- else }}
-		_, err := io.ReadAll(r.Body)
-		{{- end}}
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := io.Discard
+		{{- end }}
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
 
+		pbr := pb.{{ $method.Request.Name }}{}
+
 		{{- if $method.Request.ExpectBody }}
+		body := buf.Bytes()
 		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)

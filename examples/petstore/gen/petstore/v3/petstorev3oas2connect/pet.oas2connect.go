@@ -32,14 +32,19 @@ func RegisterPetServiceEndpoints(mux ServeMux, svc connect.PetServiceHandler, mi
 }
 func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.UpdatePetRequest{}
-		defer r.Body.Close()
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := new(bytes.Buffer)
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.UpdatePetRequest{}
+		body := buf.Bytes()
 		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -64,14 +69,19 @@ func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, 
 }
 func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.AddPetRequest{}
-		defer r.Body.Close()
-		body, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := new(bytes.Buffer)
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.AddPetRequest{}
+		body := buf.Bytes()
 		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
@@ -96,14 +106,18 @@ func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid
 }
 func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.FindPetsByStatusRequest{}
-		defer r.Body.Close()
-		_, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := io.Discard
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.FindPetsByStatusRequest{}
 
 		if v := r.URL.Query().Get("status"); v != "" {
 			if vv, err := ToString(v); err != nil {
@@ -133,14 +147,18 @@ func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Ha
 }
 func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.FindPetsByTagsRequest{}
-		defer r.Body.Close()
-		_, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := io.Discard
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.FindPetsByTagsRequest{}
 
 		if rawParams, ok := r.URL.Query()["tags"]; ok {
 			params := make([]string, len(rawParams))
@@ -173,14 +191,18 @@ func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Hand
 }
 func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.FindPetRequest{}
-		defer r.Body.Close()
-		_, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := io.Discard
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.FindPetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
 			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)
@@ -208,14 +230,18 @@ func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mi
 }
 func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pbr := pb.DeletePetRequest{}
-		defer r.Body.Close()
-		_, err := io.ReadAll(r.Body)
-		if err != nil {
-			log.Printf("failed to read request body: %v", err)
-			http.Error(w, "internal server error", http.StatusInternalServerError)
-			return
+		buf := io.Discard
+		if r.Body != nil {
+			defer r.Body.Close()
+			_, err := io.Copy(buf, r.Body)
+			if err != nil {
+				log.Printf("failed to read request body: %v", err)
+				http.Error(w, "internal server error", http.StatusInternalServerError)
+				return
+			}
 		}
+
+		pbr := pb.DeletePetRequest{}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
 			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)
