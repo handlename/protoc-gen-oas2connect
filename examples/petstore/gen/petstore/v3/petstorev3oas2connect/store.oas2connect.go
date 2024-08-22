@@ -5,11 +5,14 @@ package petstorev3oas2connect
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
 	connect "petstore/gen/petstore/v3/petstorev3connect"
 	pb "petstore/gen/petstore/v3"
+
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler, middleware Middleware) {
@@ -25,9 +28,14 @@ func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler
 func NewStoreServiceAddStoreOrderHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.AddStoreOrderRequest{}
-		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
-		if err := dec.Decode(&pbr); err != nil {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return

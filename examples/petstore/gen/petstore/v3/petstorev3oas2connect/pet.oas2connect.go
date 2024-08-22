@@ -5,11 +5,14 @@ package petstorev3oas2connect
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"log"
 	"net/http"
 
 	connect "petstore/gen/petstore/v3/petstorev3connect"
 	pb "petstore/gen/petstore/v3"
+
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func RegisterPetServiceEndpoints(mux ServeMux, svc connect.PetServiceHandler, middleware Middleware) {
@@ -30,9 +33,14 @@ func RegisterPetServiceEndpoints(mux ServeMux, svc connect.PetServiceHandler, mi
 func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.UpdatePetRequest{}
-		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
-		if err := dec.Decode(&pbr); err != nil {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
@@ -57,9 +65,14 @@ func NewPetServiceUpdatePetHandler(protoPath string, protoHandler http.Handler, 
 func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.AddPetRequest{}
-		dec := json.NewDecoder(r.Body)
 		defer r.Body.Close()
-		if err := dec.Decode(&pbr); err != nil {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
+		if err := protojson.Unmarshal(body, &pbr); err != nil {
 			log.Printf("failed to decode request body: %v", err)
 			http.Error(w, "invalid request body", http.StatusBadRequest)
 			return
@@ -84,6 +97,13 @@ func NewPetServiceAddPetHandler(protoPath string, protoHandler http.Handler, mid
 func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetsByStatusRequest{}
+		defer r.Body.Close()
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		if v := r.URL.Query().Get("status"); v != "" {
 			if vv, err := ToString(v); err != nil {
@@ -114,6 +134,13 @@ func NewPetServiceFindPetsByStatusHandler(protoPath string, protoHandler http.Ha
 func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetsByTagsRequest{}
+		defer r.Body.Close()
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		if rawParams, ok := r.URL.Query()["tags"]; ok {
 			params := make([]string, len(rawParams))
@@ -147,6 +174,13 @@ func NewPetServiceFindPetsByTagsHandler(protoPath string, protoHandler http.Hand
 func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.FindPetRequest{}
+		defer r.Body.Close()
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
 			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)
@@ -175,6 +209,13 @@ func NewPetServiceFindPetHandler(protoPath string, protoHandler http.Handler, mi
 func NewPetServiceDeletePetHandler(protoPath string, protoHandler http.Handler, mid Middleware) (string, http.Handler) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		pbr := pb.DeletePetRequest{}
+		defer r.Body.Close()
+		_, err := io.ReadAll(r.Body)
+		if err != nil {
+			log.Printf("failed to read request body: %v", err)
+			http.Error(w, "internal server error", http.StatusInternalServerError)
+			return
+		}
 
 		if v, err := ToInt64(r.PathValue("pet_id")); err != nil {
 			log.Printf("failed to convert pet_id=%s: %v", r.PathValue("pet_id"), err)

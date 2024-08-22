@@ -7,5 +7,3 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20240401170217-c3f982113cda
 	google.golang.org/protobuf v1.34.1
 )
-
-require github.com/bufbuild/connect-go v1.10.0 // indirect
