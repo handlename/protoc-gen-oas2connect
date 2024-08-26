@@ -12,11 +12,13 @@ import (
 	pb "petstore/gen/petstore/v3"
 	connect "petstore/gen/petstore/v3/petstorev3connect"
 
+	connectgo "connectrpc.com/connect"
+
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
-func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler, middleware Middleware) {
-	path, handler := connect.NewStoreServiceHandler(svc)
+func RegisterStoreServiceEndpoints(mux ServeMux, svc connect.StoreServiceHandler, middleware Middleware, opts ...connectgo.HandlerOption) {
+	path, handler := connect.NewStoreServiceHandler(svc, opts...)
 
 	mid := middleware
 	if mid == nil {
