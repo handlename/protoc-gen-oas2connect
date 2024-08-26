@@ -11,6 +11,7 @@ import (
 	"net/http"
 
 	connect "{{ .ConnectPackagePath }}"
+	connectgo "connectrpc.com/connect"
 	pb "{{ .ProtoPackagePath }}"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -19,8 +20,8 @@ import (
 {{- range .Services }}
 {{- $service := . }}
 
-func Register{{ $service.Name }}Endpoints(mux ServeMux, svc connect.{{ $service.Name }}Handler, middleware Middleware) {
-	path, handler := connect.New{{ $service.Name }}Handler(svc)
+func Register{{ $service.Name }}Endpoints(mux ServeMux, svc connect.{{ $service.Name }}Handler, middleware Middleware, opts ...connectgo.HandlerOption) {
+	path, handler := connect.New{{ $service.Name }}Handler(svc, opts...)
 
 	mid := middleware
 	if mid == nil {
