@@ -10,6 +10,8 @@ import (
 	"petstore/gen/petstore/v3/petstorev3oas2connect"
 
 	"connectrpc.com/connect"
+	"go.akshayshah.org/connectproto"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 type PetstoreServer struct {
@@ -85,7 +87,11 @@ func loggingMiddleware(next http.Handler) http.Handler {
 func main() {
 	server := &PetstoreServer{}
 	mux := http.NewServeMux()
-	petstorev3oas2connect.RegisterPetServiceEndpoints(mux, server, loggingMiddleware)
+	opt := connectproto.WithJSON(
+		protojson.MarshalOptions{EmitDefaultValues: true},
+		protojson.UnmarshalOptions{},
+	)
+	petstorev3oas2connect.RegisterPetServiceEndpoints(mux, server, loggingMiddleware, opt)
 
 	port := 8080
 	log.Printf("start to listen on %d", port)
